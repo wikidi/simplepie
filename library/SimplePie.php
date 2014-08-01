@@ -2674,7 +2674,14 @@ class SimplePie
 	{
 		if ($return = $this->get_channel_tags(SIMPLEPIE_NAMESPACE_ITUNES, 'image'))
 		{
-			return $this->sanitize($return[0]['attribs']['']['href'], SIMPLEPIE_CONSTRUCT_IRI);
+			if (isset($return[0]['attribs']['']['href']))
+			{
+				return $this->sanitize($return[0]['attribs']['']['href'], SIMPLEPIE_CONSTRUCT_IRI);
+			}
+			else
+			{
+				return null;
+			}
 		}
 		elseif ($return = $this->get_channel_tags(SIMPLEPIE_NAMESPACE_ATOM_10, 'logo'))
 		{
