@@ -1521,14 +1521,19 @@ class SimplePie
 			if (!$locate->is_feed($file))
 			{
 				// We need to unset this so that if SimplePie::set_file() has been called that object is untouched
+				$lastFile = $file;
 				unset($file);
 				try
 				{
 					if (!($file = $locate->find($this->autodiscovery, $this->all_discovered_feeds)))
 					{
-						$this->error = "A feed could not be found at $this->feed_url. A feed with an invalid mime type may fall victim to this error, or " . SIMPLEPIE_NAME . " was unable to auto-discover it.. Use force_feed() if you are certain this URL is a real feed.";
-						$this->registry->call('Misc', 'error', array($this->error, E_USER_NOTICE, __FILE__, __LINE__));
-						return false;
+						$this->raw_data = $lastFile->body;
+
+						$headers = $lastFile->headers;
+						$sniffer = $this->registry->create('Content_Type_Sniffer', array(&$lastFile));
+						$sniffed = $sniffer->get_type();
+
+						return array($headers, $sniffed);
 					}
 				}
 				catch (SimplePie_Exception $e)
