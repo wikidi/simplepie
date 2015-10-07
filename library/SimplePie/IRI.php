@@ -259,6 +259,12 @@ class SimplePie_IRI
 		$this->set_iri($iri);
 	}
 
+	public function __destruct() {
+		$this->set_iri(null, true);
+		$this->set_path(null, true);
+		$this->set_authority(null, true);
+	}
+
 	/**
 	 * Create a new IRI object by resolving a relative IRI
 	 *
@@ -795,11 +801,18 @@ class SimplePie_IRI
 	 * are any invalid characters).
 	 *
 	 * @param string $iri
+	 * @param bool $clear_cache
 	 * @return bool
 	 */
-	public function set_iri($iri)
+	public function set_iri($iri, $clear_cache = false)
 	{
 		static $cache;
+		if ($clear_cache)
+		{
+			unset($cache);
+			return;
+		}
+
 		if (!$cache)
 		{
 			$cache = array();
@@ -877,11 +890,18 @@ class SimplePie_IRI
 	 * any invalid characters).
 	 *
 	 * @param string $authority
+	 * @param bool $clear_cache
 	 * @return bool
 	 */
-	public function set_authority($authority)
+	public function set_authority($authority, $clear_cache = false)
 	{
 		static $cache;
+		if ($clear_cache)
+		{
+			unset($cache);
+			return;
+		}
+
 		if (!$cache)
 			$cache = array();
 
@@ -1047,11 +1067,19 @@ class SimplePie_IRI
 	 * Set the ipath.
 	 *
 	 * @param string $ipath
+	 * @param bool $clear_cache
 	 * @return bool
 	 */
-	public function set_path($ipath)
+	public function set_path($ipath, $clear_cache)
 	{
 		static $cache;
+
+		if ($clear_cache)
+		{
+			unset($cache);
+			return;
+		}
+
 		if (!$cache)
 		{
 			$cache = array();
