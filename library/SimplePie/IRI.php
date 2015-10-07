@@ -1070,7 +1070,7 @@ class SimplePie_IRI
 	 * @param bool $clear_cache
 	 * @return bool
 	 */
-	public function set_path($ipath, $clear_cache)
+	public function set_path($ipath, $clear_cache = false)
 	{
 		static $cache;
 
