@@ -55,6 +55,8 @@
  */
 class SimplePie_File
 {
+	const FILE_SIZE_LIMIT = 5 * 1024 * 1024; // 5 mb
+
 	var $url;
 	var $useragent;
 	var $success = true;
@@ -107,6 +109,13 @@ class SimplePie_File
 				curl_setopt($fp, CURLOPT_REFERER, $url);
 				curl_setopt($fp, CURLOPT_USERAGENT, $useragent);
 				curl_setopt($fp, CURLOPT_HTTPHEADER, $headers2);
+				curl_setopt($fp, CURLOPT_BUFFERSIZE, 1024*16); // 16kb
+				curl_setopt($fp, CURLOPT_NOPROGRESS, false);
+				curl_setopt($fp, CURLOPT_PROGRESSFUNCTION, function(
+					$downloadSize, $downloaded, $uploadSize, $uploaded
+				){
+					return ($downloaded > (self::FILE_SIZE_LIMIT)) ? 1 : 0;
+				});
 				if (!ini_get('open_basedir') && !ini_get('safe_mode') && version_compare(SimplePie_Misc::get_curl_version(), '7.15.2', '>='))
 				{
 					curl_setopt($fp, CURLOPT_FOLLOWLOCATION, 1);
