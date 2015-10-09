@@ -132,7 +132,7 @@ class SimplePie_Parser
 
 		while (@$xml->read())
 		{
-			if ($counter++ % 10 === 0 && memory_get_usage() - $memoryBefore > self::PARSE_MEMORY_LIMIT) {
+			if ($counter++ % 300 === 0 && memory_get_usage() - $memoryBefore > self::PARSE_MEMORY_LIMIT) {
 				$this->error_string = 'Memory limit exceeded: more than ' . memory_get_usage() . ' bytes used to parse';
 				return false;
 			}
