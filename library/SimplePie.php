@@ -1475,6 +1475,21 @@ class SimplePie
 						{
 							unset($file);
 						}
+					} elseif (array_key_exists('length', $this->data) && array_key_exists('md5', $this->data)) {
+						$headers = array(
+							'Accept' => 'application/atom+xml, application/rss+xml, application/rdf+xml;q=0.9, application/xml;q=0.8, text/xml;q=0.8, text/html;q=0.7, unknown/unknown;q=0.1, application/unknown;q=0.1, */*;q=0.1',
+						);
+
+						$file = $this->registry->create('File', [$this->feed_url, $this->timeout/10, 5, $headers, $this->useragent, $this->force_fsockopen]);
+
+						if ($file->success && $this->data['length'] === strlen($file->body) && $this->data['md5'] === md5($file->body)) {
+							$cache->touch();
+							unset($file);
+							return true;
+						} else {
+							$cache->unlink();
+							$this->data = [];
+						}
 					}
 				}
 				// If the cache is still valid, just return true
