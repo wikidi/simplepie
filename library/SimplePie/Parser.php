@@ -68,11 +68,30 @@ class SimplePie_Parser
 	var $datas = array(array());
 	var $current_xhtml_construct = -1;
 	var $encoding;
+	var $tryCount = 0;
 	protected $registry;
 
 	public function set_registry(SimplePie_Registry $registry)
 	{
 		$this->registry = $registry;
+	}
+
+	public function resetClassVariables() {
+		$this->error_code = null;
+		$this->error_string = null;
+		$this->current_line = null;
+		$this->current_column = null;
+		$this->current_byte = null;
+		$this->separator = ' ';
+		$this->namespace = [''];
+		$this->element = [''];
+		$this->xml_base = [''];
+		$this->xml_base_explicit = [false];
+		$this->xml_lang = [''];
+		$this->data = [];
+		$this->datas = [[]];
+		$this->current_xhtml_construct = -1;
+		libxml_clear_errors();
 	}
 
 	public function parse(&$data, $encoding)
@@ -153,10 +172,18 @@ class SimplePie_Parser
 			// Parse!
 			if (!xml_parse($xml, $data, true))
 			{
+				if ($this->tryCount === 0) {
+					$this->resetClassVariables();
+					$data = preg_replace ('/[^\x{0009}\x{000a}\x{000d}\x{0020}-\x{D7FF}\x{E000}-\x{FFFD}]+/u', ' ', $data);
+					$this->tryCount++;
+					return $this->parse($data, $encoding);
+				}
+
 				$this->error_code = xml_get_error_code($xml);
 				$this->error_string = xml_error_string($this->error_code);
 				$return = false;
 			}
+
 			$this->current_line = xml_get_current_line_number($xml);
 			$this->current_column = xml_get_current_column_number($xml);
 			$this->current_byte = xml_get_current_byte_index($xml);
@@ -222,6 +249,13 @@ class SimplePie_Parser
 			}
 			if ($error = libxml_get_last_error())
 			{
+				if ($this->tryCount === 0) {
+					$this->resetClassVariables();
+					$data = preg_replace ('/[^\x{0009}\x{000a}\x{000d}\x{0020}-\x{D7FF}\x{E000}-\x{FFFD}]+/u', ' ', $data);
+					$this->tryCount++;
+					return $this->parse($data, $encoding);
+				}
+
 				$this->error_code = $error->code;
 				$this->error_string = $error->message;
 				$this->current_line = $error->line;
@@ -322,10 +356,10 @@ class SimplePie_Parser
 			$this->data =& $this->data['child'][end($this->namespace)][end($this->element)][];
 			$this->data = array('data' => '', 'attribs' => $attribs, 'xml_base' => end($this->xml_base), 'xml_base_explicit' => end($this->xml_base_explicit), 'xml_lang' => end($this->xml_lang));
 			if ((end($this->namespace) === SIMPLEPIE_NAMESPACE_ATOM_03 && in_array(end($this->element), array('title', 'tagline', 'copyright', 'info', 'summary', 'content')) && isset($attribs['']['mode']) && $attribs['']['mode'] === 'xml')
-			|| (end($this->namespace) === SIMPLEPIE_NAMESPACE_ATOM_10 && in_array(end($this->element), array('rights', 'subtitle', 'summary', 'info', 'title', 'content')) && isset($attribs['']['type']) && $attribs['']['type'] === 'xhtml')
-			|| (end($this->namespace) === SIMPLEPIE_NAMESPACE_RSS_20 && in_array(end($this->element), array('title')))
-			|| (end($this->namespace) === SIMPLEPIE_NAMESPACE_RSS_090 && in_array(end($this->element), array('title')))
-			|| (end($this->namespace) === SIMPLEPIE_NAMESPACE_RSS_10 && in_array(end($this->element), array('title'))))
+				|| (end($this->namespace) === SIMPLEPIE_NAMESPACE_ATOM_10 && in_array(end($this->element), array('rights', 'subtitle', 'summary', 'info', 'title', 'content')) && isset($attribs['']['type']) && $attribs['']['type'] === 'xhtml')
+				|| (end($this->namespace) === SIMPLEPIE_NAMESPACE_RSS_20 && in_array(end($this->element), array('title')))
+				|| (end($this->namespace) === SIMPLEPIE_NAMESPACE_RSS_090 && in_array(end($this->element), array('title')))
+				|| (end($this->namespace) === SIMPLEPIE_NAMESPACE_RSS_10 && in_array(end($this->element), array('title'))))
 			{
 				$this->current_xhtml_construct = 0;
 			}
