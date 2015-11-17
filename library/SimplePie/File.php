@@ -114,10 +114,14 @@ class SimplePie_File
 				curl_setopt($fp, CURLOPT_PROGRESSFUNCTION, function(
 					$downloadSize, $downloaded, $uploadSize, $uploaded
 				){
-					$this->success = false;
-					$this->status_code = 413;
-					$this->error = 'Feed is too big to process';
-					return ($downloaded > (self::FILE_SIZE_LIMIT)) ? 1 : 0;
+					if ($downloaded > self::FILE_SIZE_LIMIT) {
+						$this->success = false;
+						$this->status_code = 413;
+						$this->error = 'Feed is too big to process';
+						return 1;
+					}
+
+					return 0;
 				});
 				if (!ini_get('open_basedir') && !ini_get('safe_mode') && version_compare(SimplePie_Misc::get_curl_version(), '7.15.2', '>='))
 				{
